@@ -1,7 +1,10 @@
 # experiments/custom_ppo_trainer.py
 from ray.rllib.algorithms.ppo import PPOConfig
+from grid2op_env.grid_to_gym import Grid_Gym
 
-algo = PPOConfig().build()
+config = PPOConfig().environment(Grid_Gym)
+
+algo = config.build()
 
 class CustomPPOTrainer(PPOTrainer):
     def training_step(self):
