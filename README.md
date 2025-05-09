@@ -6,7 +6,7 @@ This repository contains the code for experiments conducted for my master thesis
 
 **PENDING**
 
-### Create the environment
+### Create the environment (contributed by yensh)
 
 > The version of each package is very important. We are still working on updating all of the packages to the latest versions.
 > 
@@ -28,13 +28,13 @@ pip install pillow==8.0.1 dm_tree scikit-image==0.18.3 lz4==3.1.3
 pip install python-dotenv tensorboardX==2.4
 ```
 
-### Dependencies 
+### Dependencies
 
-The 'setup_grid2op_data.py' file can be used to install the dependencies. 
+The `setup_grid2op_data.py` file can be used to install the dependencies.
 
-### Set the Grid2op environment
+### Set the Grid2Op environment
 
-You can create an 'setup_grid2op.py' to set the environment.
+You can create a `setup_grid2op.py` script to set up the environment.
 
 ```
 import grid2op
