@@ -13,7 +13,7 @@ import torch
 import pickle
 
 import gymnasium as gym
-from gym.spaces import Discrete, Tuple, Dict, Box
+from gymnasium.spaces import Discrete, Tuple, Dict, Box
 
 from ray.rllib.models import ModelCatalog
 from ray.rllib.algorithms import ppo, sac  # import the type of agents
