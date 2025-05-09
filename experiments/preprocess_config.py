@@ -3,10 +3,14 @@ import yaml
 from grid2op_env.grid_to_gym import Grid_Gym, HierarchicalGridGym
 from experiments.callback import LogDistributionsCallback
 from ray import tune
+from experiments.callback import CustomSyncCallback
+from ray.tune.integration.wandb import WandbLoggerCallback
+from experiments.callback import CombinedCallbacks
 
 mapper = {
-    "callbacks":{
-        "LogDistributionsCallback": LogDistributionsCallback
+    "callbacks": {
+        "experiments.callback.CombinedCallbacks": CombinedCallbacks,
+        "experiments.callback.LogDistributionsCallback": LogDistributionsCallback
     },
     "env":{
         "Grid_Gym": Grid_Gym,

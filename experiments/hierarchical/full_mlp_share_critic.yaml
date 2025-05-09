@@ -39,7 +39,7 @@ choose_substation_agent_params: &choose_substation_agent_params
     custom_model : choose_substation_model
     custom_model_config : 
       share_actor: False
-
+  custom_loss: experiments.custom_losses.custom_substation_loss
 
 choose_action_agent_params: &choose_action_agent_params
   model:  
@@ -48,6 +48,8 @@ choose_action_agent_params: &choose_action_agent_params
     custom_model : choose_action_model
     custom_model_config : 
       share_actor: False
+  custom_loss: experiments.custom_losses.custom_action_loss
+
 
 
 tune_config:
@@ -75,7 +77,7 @@ tune_config:
   rollout_fragment_length: 128 #!choice [64,128,200] # 16
   ignore_worker_failures: True # continue if a worker crashes
   num_workers : 2 #6 #!choice [2,4,6] #8
-  callbacks : LogDistributionsCallback
+  callbacks: experiments.callback.CombinedCallbacks
   evaluation_interval: 10
   evaluation_num_episodes : 100
   evaluation_config: 

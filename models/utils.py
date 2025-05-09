@@ -3,13 +3,41 @@ import numpy as np
 import torch_geometric
 import grid2op
 
+from scipy.sparse import coo_matrix
 from torch_geometric.data import Data, Batch
-from sknetwork.utils import edgelist2adjacency
+
+# 不要再 import sknetwork 的了 → 改用本地函數
+# from sknetwork.utils import edgelist2adjacency
+
 from typing import Tuple, List, Dict
 from collections import defaultdict
 
 FLOAT_MIN = -3.4e38
 FLOAT_MAX = 3.4e38
+
+
+
+def edgelist2adjacency(edge_list, num_nodes=None):
+    """
+    Convert an edge list to a sparse adjacency matrix.
+
+    Parameters:
+    - edge_list: list of (i, j) pairs
+    - num_nodes: total number of nodes (optional)
+
+    Returns:
+    - scipy.sparse.coo_matrix adjacency matrix
+    """
+    if num_nodes is None:
+        num_nodes = max(max(i, j) for i, j in edge_list) + 1
+
+    row = [i for i, j in edge_list]
+    col = [j for i, j in edge_list]
+    data = np.ones(len(edge_list))
+
+    adj = coo_matrix((data, (row, col)), shape=(num_nodes, num_nodes))
+    return adj
+
 
 def vectorize_obs(obs, env_action_space, hazard_threshold = 0.9):
     """

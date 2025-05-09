@@ -5,6 +5,7 @@ import io
 import logging
 import torch
 from ray.rllib.agents.callbacks import DefaultCallbacks
+
 from ray.rllib.env import BaseEnv
 from ray.rllib.evaluation import Episode, RolloutWorker
 from ray.rllib.policy import Policy
@@ -37,6 +38,41 @@ color_list = [CB91_Blue, CB91_Pink, CB91_Green, CB91_Amber,
               CB91_Purple, CB91_Violet]
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color=color_list)
 plt.figure(figsize=(14,10), tight_layout=True)
+
+class CustomSyncCallback(DefaultCallbacks):
+    def __init__(self):
+        super().__init__()
+        self.action_update_count = 0
+        self.substation_update_allowed = False
+
+    def on_train_result(self, *, trainer, result, **kwargs):
+        self.action_update_count += 1
+        allow_update = self.action_update_count % 2 == 0
+        self.substation_update_allowed = allow_update
+
+        # 注入 flag 到 substation policy config
+        trainer.workers.foreach_policy(
+            lambda pid, p: p.config.update({"substation_update_allowed": allow_update})
+            if pid == "choose_substation_agent" else None
+        )
+
+    def setup(self, **info):
+        pass
+
+    def on_step_begin(self, iteration, trials, **info):
+        pass
+
+    def on_trial_start(self, iteration, trials, trial, **info):
+        pass
+
+    def on_trial_complete(self, iteration, trials, trial, **info):
+        pass
+
+    def on_trial_end(self, iteration, trials, trial, **info):
+        pass
+
+    def on_step_end(self, iteration, trials, **info):
+        pass
 
 class LogDistributionsCallback(DefaultCallbacks):
     """
@@ -141,6 +177,7 @@ class LogDistributionsCallback(DefaultCallbacks):
         result["action_distr"] = action_distr_dic
         result["num_non_zero_actions_tried"] = sum([1 for val in action_distr_dic.values() if val > 0])
         #print("time it took to count actions", time.time() - start_time)
+
 class CustomTBXLogger(TBXLogger):
     """
     Custom TBX logger that logs the action distribution and extra information about the actions
@@ -207,6 +244,21 @@ class CustomTBXLogger(TBXLogger):
         #print("Time taken to log:", time.time() - start_time)
         self.last_result = valid_result
         self._file_writer.flush()
+
+
+class CombinedCallbacks(DefaultCallbacks):
+    def __init__(self):
+        super().__init__()
+        self.sync_cb = CustomSyncCallback()
+        self.log_cb = LogDistributionsCallback()
+
+    def on_train_result(self, **kwargs):
+        self.sync_cb.on_train_result(**kwargs)
+        self.log_cb.on_train_result(**kwargs)
+
+    def on_episode_end(self, **kwargs):
+        self.sync_cb.on_episode_end(**kwargs)
+        self.log_cb.on_episode_end(**kwargs)
 
 # Utility plotting function
 def bar_graph_from_dict(dic):

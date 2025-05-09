@@ -42,6 +42,9 @@ class CustomDiscreteActions(Discrete):
         Discrete.__init__(self, n=converter.n)
     def from_gym(self, gym_action):
         return self.converter.convert_act(gym_action)
+    # 我新增的
+    def close(self):
+        pass
 
 def get_sub_id_to_elem_id(env):
     """
