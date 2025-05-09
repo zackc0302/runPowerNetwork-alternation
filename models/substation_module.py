@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import gym
+import gymnasium as gym
 import logging
 import numpy as np
 
