@@ -5,7 +5,7 @@ from experiments.callback import CombinedCallbacks, LogDistributionsCallback, Cu
 
 from ray import tune
 from experiments.callback import CustomSyncCallback
-from ray.tune.integration.wandb import WandbLoggerCallback
+from ray.air.integrations.wandb import WandbLoggerCallback
 from experiments.callback import CombinedCallbacks
 
 mapper = {
