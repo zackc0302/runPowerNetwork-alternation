@@ -3,7 +3,7 @@ import numpy as np
 import grid2op
 import os
 import logging
-import gym 
+import gymnasium as gym
 import random
 import time
 
