@@ -18,7 +18,7 @@ from ray.rllib.utils.typing import Dict, TensorType, List, ModelConfigDict
 
 from ray import tune
 from ray.tune.registry import register_env
-from ray.tune.integration.wandb import WandbLoggerCallback
+from ray.air.integration.wandb import WandbLoggerCallback
 from ray.tune import CLIReporter
 from ray.tune.stopper import CombinedStopper, MaximumIterationStopper
 from ray.rllib.agents.ppo.ppo_torch_policy import PPOTorchPolicy
