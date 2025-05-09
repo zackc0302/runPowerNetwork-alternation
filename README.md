@@ -14,19 +14,15 @@ This repository contains the code for experiments conducted for my master thesis
 conda create -n rlib_grid python=3.7.9 -y
 conda activate rlib_grid
 
-conda install pytorch==1.10.0 -c pytorch
+# install PyTorch (CPU only)
+conda install pytorch==1.10.0 torchvision torchaudio cpuonly -c pytorch
 
-pip install Grid2Op==1.6.4 lightsim2grid==0.5.4
+conda install -c conda-forge grid2op=1.6.4 lightsim2grid=0.5.4
 
-pip install ray==1.9.0
+conda install -c conda-forge ray=1.9.0 protobuf=3.20 importlib-metadata=4.13
 
-pip install protobuf==3.20.0
-pip install importlib-metadata==4.13.0
-
-pip install gym==0.21.0 tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 
-pip install pillow==8.0.1 dm_tree scikit-image==0.18.3 lz4==3.1.3
-pip install python-dotenv tensorboardX==2.4
-pip install wandb
+conda install -c conda-forge gym=0.21.0 tabulate=0.8.9 numba=0.54.1 tqdm=4.62.3 \
+pillow=8.0.1 dm-tree scikit-image=0.18.3 lz4=3.1.3 python-dotenv tensorboardx=2.4 wandb
 ```
 
 ### Dependencies
