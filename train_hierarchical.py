@@ -12,7 +12,7 @@ import numpy as np
 import torch 
 import pickle
 
-import gym
+import gymnasium as gym
 from gym.spaces import Discrete, Tuple, Dict, Box
 
 from ray.rllib.models import ModelCatalog
