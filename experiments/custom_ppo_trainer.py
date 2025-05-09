@@ -2,7 +2,20 @@
 from ray.rllib.algorithms.ppo import PPOConfig
 from grid2op_env.grid_to_gym import Grid_Gym
 
-config = PPOConfig().environment(Grid_Gym)
+config = PPOConfig().environment(
+    env=Grid_Gym,
+    env_config={
+        "env_name": "rte_case14_realistic_train",
+        "keep_actions": ["change_bus"],
+        "keep_observations": ["rho", "gen_p", "load_p", "p_or", "p_ex", "timestep_overflow", "maintenance", "topo_vect"],
+        "convert_to_tuple": True,
+        "act_on_single_substation": True,
+        "medha_actions": True,
+        "use_parametric": False,
+        "rho_threshold": 0.95
+    }
+)
+
 
 algo = config.build()
 
