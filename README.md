@@ -26,6 +26,7 @@ pip install importlib-metadata==4.13.0
 pip install gym==0.21.0 tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 
 pip install pillow==8.0.1 dm_tree scikit-image==0.18.3 lz4==3.1.3
 pip install python-dotenv tensorboardX==2.4
+pip install wandb
 ```
 
 ### Dependencies
