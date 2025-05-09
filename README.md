@@ -8,10 +8,8 @@ This repository contains the code for experiments conducted for my master thesis
 
 ### Create the environment
 
-:::Warning
-The version of each package is very important. We are still  figuring to update all of the packages to the latest version
-:::
-
+> The version of each package is very important. We are still working on updating all of the packages to the latest versions.
+> 
 ```
 conda create -n rlib_grid python=3.7.9 -y
 conda activate rlib_grid
