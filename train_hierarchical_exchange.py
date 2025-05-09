@@ -102,7 +102,8 @@ if __name__ == "__main__":
         config["evaluation_config"]["env_config"]["with_opponent"] = True
 
     if args.algorithm == "ppo":
-        from ray.rllib.algorithms.ppo import PPOConfig, PPOTrainer  # 直接匯入 PPOTrainer
+        from ray.rllib.algorithms.ppo import PPOConfig
+        from ray.rllib.algorithms.ppo import PPO as PPOTrainer # 修改匯入方式
         trainer_config = PPOConfig().environment(
             env=Grid_Gym,
             env_config=config["env_config"]
@@ -110,7 +111,8 @@ if __name__ == "__main__":
         trainer_cls = PPOTrainer
 
     elif args.algorithm == "sac":
-        from ray.rllib.algorithms.sac import SACConfig, SACTrainer  # 直接匯入 SACTrainer
+        from ray.rllib.algorithms.sac import SACConfig
+        from ray.rllib.algorithms.sac import SAC as SACTrainer # 修改匯入方式
         trainer_config = SACConfig().environment(
             env=Grid_Gym,
             env_config=config["env_config"]
@@ -120,7 +122,6 @@ if __name__ == "__main__":
     else:
         raise ValueError("Unknown algorithm. Choices are: ppo, sac")
 
-    # 訓練 loop
 
 
     if args.use_tune:
