@@ -103,24 +103,26 @@ if __name__ == "__main__":
 
     if args.algorithm == "ppo":
         from ray.rllib.algorithms.ppo import PPOConfig
-        trainer = PPOConfig().environment(
+        trainer_config = PPOConfig().environment(
             env=Grid_Gym,
             env_config=config["env_config"]
-        ).build()
-        
+        )
+        trainer_cls = ppo.PPOTrainer
+
     elif args.algorithm == "sac":
         from ray.rllib.algorithms.sac import SACConfig
-        trainer = SACConfig().environment(
+        trainer_config = SACConfig().environment(
             env=Grid_Gym,
             env_config=config["env_config"]
-        ).build()
-        
+        )
+        trainer_cls = sac.SACTrainer
+
     else:
         raise ValueError("Unknown algorithm. Choices are: ppo, sac")
-    
+
     # 訓練 loop
 
-    
+
     if args.use_tune:
         reporter = CLIReporter()
         stopper = CombinedStopper(
@@ -155,10 +157,9 @@ if __name__ == "__main__":
     else:
         trainer_object = trainer_config.environment(env=Grid_Gym, env_config=config["env_config"]).build()
         for step in range(args.num_iters):
-            result = trainer.train()
+            result = trainer_object.train()
             print(f"Iteration {step}: reward = {result['episode_reward_mean']}", flush=True)
             if (step + 1) % args.checkpoint_freq == 0:
-                checkpoint = trainer.save()
+                checkpoint = trainer_object.save()
                 print("Checkpoint saved at", checkpoint)
             print("-" * 40, flush=True)
-            
