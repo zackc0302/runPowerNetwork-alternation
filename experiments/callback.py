@@ -4,7 +4,7 @@ import matplotlib
 import io
 import logging
 import torch
-from ray.rllib.agents.callbacks import DefaultCallbacks
+from ray.rllib.callbacks import DefaultCallbacks
 
 from ray.rllib.env import BaseEnv
 from ray.rllib.evaluation import Episode, RolloutWorker
