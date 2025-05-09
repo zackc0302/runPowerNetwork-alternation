@@ -1,3 +1,4 @@
+import gymnasium as gym
 from gym.spaces import Discrete
 from collections import defaultdict, OrderedDict
 
