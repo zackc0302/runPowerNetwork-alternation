@@ -1,3 +1,4 @@
+# train_hierarchical_exchange.py
 import os
 import ray
 import logging
@@ -101,9 +102,9 @@ if __name__ == "__main__":
         config["evaluation_config"]["env_config"]["with_opponent"] = True
 
     if args.algorithm == "ppo":
-        trainer_cls = ppo.PPOTrainer
+        trainer_cls = ppo.PPOConfig
     elif args.algorithm == "sac":
-        trainer_cls = sac.SACTrainer
+        trainer_cls = sac.SACConfig
     else:
         raise ValueError("Unknown algorithm. Choices are: ppo, sac")
 
