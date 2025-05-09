@@ -13,7 +13,7 @@ from ray.rllib.policy.sample_batch import SampleBatch
 from ray.tune.logger import TBXLogger
 from ray.util.debug import log_once
 from ray.tune.result import (TRAINING_ITERATION, TIME_TOTAL_S, TIMESTEPS_TOTAL)
-from ray.util.ml_utils.dict import flatten_dict
+from ray.air.util.ml_utils import flatten_dict
 from ray.rllib.models import ModelCatalog
 
 from gym.spaces import Discrete
