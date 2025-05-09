@@ -21,7 +21,7 @@ from ray.tune.registry import register_env
 from ray.air.integrations.wandb import WandbLoggerCallback
 from ray.tune import CLIReporter
 from ray.tune.stopper import CombinedStopper, MaximumIterationStopper
-from ray.rllib.agents.ppo.ppo_torch_policy import PPOTorchPolicy
+from ray.rllib.algorithms.ppo.ppo_torch_policy import PPOTorchPolicy
 
 from dotenv import load_dotenv
 
