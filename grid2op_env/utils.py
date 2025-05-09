@@ -1,5 +1,5 @@
 import gymnasium as gym
-from gym.spaces import Discrete
+from gymnasium.spaces import Discrete, Box, Tuple, Dict
 from collections import defaultdict, OrderedDict
 
 from grid2op.Action import PowerlineSetAction
