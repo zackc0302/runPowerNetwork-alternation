@@ -1,7 +1,8 @@
 from numpy import save
 import yaml
 from grid2op_env.grid_to_gym import Grid_Gym, HierarchicalGridGym
-from experiments.callback import LogDistributionsCallback
+from experiments.callback import CombinedCallbacks, LogDistributionsCallback, CustomSyncCallback
+
 from ray import tune
 from experiments.callback import CustomSyncCallback
 from ray.tune.integration.wandb import WandbLoggerCallback
