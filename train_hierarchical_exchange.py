@@ -13,7 +13,7 @@ import gymnasium as gym
 from gymnasium.spaces import Discrete, Tuple, Dict, Box
 
 from ray.rllib.models import ModelCatalog
-from ray.rllib.agents import ppo, sac
+from ray.rllib.algorithms import ppo, sac
 from ray.rllib.utils.typing import Dict, TensorType, List, ModelConfigDict
 
 from ray import tune
