@@ -16,7 +16,7 @@ from ray.tune.result import (TRAINING_ITERATION, TIME_TOTAL_S, TIMESTEPS_TOTAL)
 # from ray.air.util.ml_utils import flatten_dict # can't found
 from ray.rllib.models import ModelCatalog
 
-from gym.spaces import Discrete
+from gymnasium.spaces import Discrete, Tuple, Dict, Box
 from tensorboardX import SummaryWriter
 from typing import TYPE_CHECKING, Dict, List, Optional, TextIO, Type
 
