@@ -12,6 +12,7 @@ from ray.rllib.algorithms.ppo.ppo_torch_policy import PPOTorchPolicy
 from gymnasium.spaces import Discrete, Tuple, Dict, Box
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.rllib.algorithms.sac import SACConfig
+from ray.rllib.algorithms.algorithm import Algorithm
 from grid2op_env.grid_to_gym import Grid_Gym, HierarchicalGridGym
 from typing import Tuple, Union, Optional
 
@@ -21,7 +22,7 @@ logger.setLevel(logging.INFO)
 
 def restore_agent(trainer_type:str, path:str, checkpoint_num:Optional[int] = None,
                  modify_keys: Optional[dict] = None, hierachical = False) \
-                        -> Tuple[Union[ppo.PPOTrainer, sac.SACTrainer], dict]:
+                       -> Tuple[Algorithm, dict]:
     """
     Function that restores the agent from tune checkpointwith 
     correct hyperparameters.
