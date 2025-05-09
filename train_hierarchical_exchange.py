@@ -102,20 +102,20 @@ if __name__ == "__main__":
         config["evaluation_config"]["env_config"]["with_opponent"] = True
 
     if args.algorithm == "ppo":
-        from ray.rllib.algorithms.ppo import PPOConfig
+        from ray.rllib.algorithms.ppo import PPOConfig, PPOTrainer  # 直接匯入 PPOTrainer
         trainer_config = PPOConfig().environment(
             env=Grid_Gym,
             env_config=config["env_config"]
         )
-        trainer_cls = ppo.PPOTrainer
+        trainer_cls = PPOTrainer
 
     elif args.algorithm == "sac":
-        from ray.rllib.algorithms.sac import SACConfig
+        from ray.rllib.algorithms.sac import SACConfig, SACTrainer  # 直接匯入 SACTrainer
         trainer_config = SACConfig().environment(
             env=Grid_Gym,
             env_config=config["env_config"]
         )
-        trainer_cls = sac.SACTrainer
+        trainer_cls = SACTrainer
 
     else:
         raise ValueError("Unknown algorithm. Choices are: ppo, sac")
