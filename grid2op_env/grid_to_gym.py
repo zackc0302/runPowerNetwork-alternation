@@ -19,7 +19,7 @@ from grid2op.Agent.greedyAgent import GreedyAgent
 from grid2op.dtypes import dt_float
 from lightsim2grid import LightSimBackend
 
-from gym.spaces import Box, Discrete # needed for adding connectivity matrix
+from gymnasium.spaces import Box, Discrete 
 
 from grid2op_env.medha_action_space import create_action_space, remove_redundant_actions
 from grid2op_env.utils import CustomDiscreteActions, get_sub_id_to_action
