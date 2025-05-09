@@ -1,6 +1,7 @@
 # experiments/custom_ppo_trainer.py
-
 from ray.rllib.algorithms.ppo import PPOConfig
+
+algo = PPOConfig().build()
 
 class CustomPPOTrainer(PPOTrainer):
     def training_step(self):
