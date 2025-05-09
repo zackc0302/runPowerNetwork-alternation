@@ -2,7 +2,7 @@ import numpy as np
 from grid2op.Reward import L2RPNReward
 from grid2op.dtypes import dt_float
 
-from grid2op.Reward.BaseReward import BaseReward
+from grid2op.reward.base_reward import BaseReward
 
 
 class ScaledL2RPNReward(L2RPNReward):
