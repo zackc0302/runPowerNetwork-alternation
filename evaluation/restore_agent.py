@@ -10,7 +10,7 @@ from train_hierarchical import policy_mapping_fn
 
 from ray.rllib.agents.ppo.ppo_torch_policy import PPOTorchPolicy
 from gym.spaces import Discrete, Box
-from ray.rllib.agents import ppo, sac # import the type of agents
+from ray.rllib.algorithms import ppo, sac # import the type of agents
 from grid2op_env.grid_to_gym import Grid_Gym, HierarchicalGridGym
 from typing import Tuple, Union, Optional
 
