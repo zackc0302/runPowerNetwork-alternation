@@ -1,5 +1,5 @@
 import torch
-from ray.rllib.agents.ppo.ppo_torch_policy import ppo_surrogate_loss
+from ray.rllib.algorithms.ppo.ppo_torch_policy import ppo_surrogate_loss
 
 def custom_substation_loss(policy, model, dist_class, train_batch):
     if not policy.config.get("substation_update_allowed", True):
