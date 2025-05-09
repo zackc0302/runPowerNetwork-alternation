@@ -13,7 +13,7 @@ from ray.rllib.policy.sample_batch import SampleBatch
 from ray.tune.logger import TBXLogger
 from ray.util.debug import log_once
 from ray.tune.result import (TRAINING_ITERATION, TIME_TOTAL_S, TIMESTEPS_TOTAL)
-from ray.air.util.ml_utils import flatten_dict
+# from ray.air.util.ml_utils import flatten_dict # can't found
 from ray.rllib.models import ModelCatalog
 
 from gym.spaces import Discrete
@@ -38,6 +38,20 @@ color_list = [CB91_Blue, CB91_Pink, CB91_Green, CB91_Amber,
               CB91_Purple, CB91_Violet]
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color=color_list)
 plt.figure(figsize=(14,10), tight_layout=True)
+
+def flatten_dict(d, parent_key='', sep='/'):
+    """
+    A simple replacement for Ray's flatten_dict, which flattens nested dictionaries.
+    """
+    items = []
+    for k, v in d.items():
+        new_key = f'{parent_key}{sep}{k}' if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
 
 class CustomSyncCallback(DefaultCallbacks):
     def __init__(self):
