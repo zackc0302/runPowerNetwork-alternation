@@ -1,6 +1,5 @@
 # experiments/custom_ppo_trainer.py
 from ray.rllib.algorithms.ppo import PPOConfig
-from ray.rllib.algorithms.algorithm import Algorithm
 from grid2op_env.grid_to_gym import Grid_Gym
 
 class CustomPPOTrainer:
@@ -19,3 +18,6 @@ class CustomPPOTrainer:
 
     def restore(self, checkpoint_path):
         self.algo.restore(checkpoint_path)
+
+# 主程式（例如 train_hierarchical_exchange.py）應該直接引用這個 CustomPPOTrainer
+# 並刪除舊的 `trainer_cls = ppo.PPOTrainer`，改為使用 `CustomPPOTrainer` 實例
