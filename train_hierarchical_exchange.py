@@ -101,16 +101,26 @@ if __name__ == "__main__":
         config["env_config"]["with_opponent"] = True
         config["evaluation_config"]["env_config"]["with_opponent"] = True
 
-    # 沒有PPOTrainer了
     if args.algorithm == "ppo":
         from ray.rllib.algorithms.ppo import PPOConfig
-        trainer_config = PPOConfig()
+        trainer = PPOConfig().environment(
+            env=Grid_Gym,
+            env_config=config["env_config"]
+        ).build()
+        
     elif args.algorithm == "sac":
         from ray.rllib.algorithms.sac import SACConfig
-        trainer_config = SACConfig()
+        trainer = SACConfig().environment(
+            env=Grid_Gym,
+            env_config=config["env_config"]
+        ).build()
+        
     else:
         raise ValueError("Unknown algorithm. Choices are: ppo, sac")
+    
+    # 訓練 loop
 
+    
     if args.use_tune:
         reporter = CLIReporter()
         stopper = CombinedStopper(
@@ -145,9 +155,10 @@ if __name__ == "__main__":
     else:
         trainer_object = trainer_config.environment(env=Grid_Gym, env_config=config["env_config"]).build()
         for step in range(args.num_iters):
-            result = trainer_object.train()
-            print(result["episode_reward_mean"], flush=True)
+            result = trainer.train()
+            print(f"Iteration {step}: reward = {result['episode_reward_mean']}", flush=True)
             if (step + 1) % args.checkpoint_freq == 0:
-                checkpoint = trainer_object.save()
-                print("checkpoint saved at", checkpoint)
+                checkpoint = trainer.save()
+                print("Checkpoint saved at", checkpoint)
             print("-" * 40, flush=True)
+            
