@@ -43,27 +43,27 @@ import numpy as np
 env_name = "rte_case14_realistic"
 env = grid2op.make(env_name)
 
-# 載入或創建分割檔案
+# Load or create split files
 val_path = "grid2op_env/train_val_test_split/val_chronics.npy"
 test_path = "grid2op_env/train_val_test_split/test_chronics.npy"
 val_chron = np.load(val_path)
 test_chron = np.load(test_path)
 
-# 创建驗證集分割
+# Create validation split
 env_base, env_val = env.train_val_split(
     val_scen_id=val_chron,
     add_for_val="val"
 )
 
-# 重新载入環境后创建測試集分割
+# Reload environment and create test split
 env = grid2op.make(env_name)
 env_base2, env_test = env.train_val_split(
     val_scen_id=test_chron,
     add_for_val="test"
 )
 
-# 檢查可用環境
-print("可用環境列表:", grid2op.list_available_local_env())
+# Check available environments
+print("Available environments:", grid2op.list_available_local_env())
 
 ```
 ### Agent training
