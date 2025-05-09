@@ -53,6 +53,7 @@ pip install tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 \
 
 pip install pip==21.3.1 setuptools==59.5.0 wheel==0.37.1 --timeout 100
 pip install gym==0.21.0
+
 pip install wandb
 pip install gymnasium==0.28.1
 
