@@ -347,114 +347,99 @@ class HierarchicalGridGym(MultiAgentEnv):
     def __init__(self, env_config):
         super().__init__()
 
-        self._my_agent_ids = {"choose_substation_agent", "choose_action_agent"}
-
-        # 其他初始化
         self.action_encoder = ModelCatalog.get_preprocessor_for_space(Discrete(106))
         self._skip_env_checking = True
+        
         self.env_gym = Grid_Gym(env_config)
         self.org_env = self.env_gym.org_env
-
+        
         self.low_level_agent_id = "choose_action_agent"
         self.high_level_agent_id = "choose_substation_agent"
 
-        self.sub_id_to_action_num = get_sub_id_to_action(self.env_gym.all_actions_dict, return_action_ix=True)
-        self.num_to_sub = {i: k for i, k in enumerate(self.sub_id_to_action_num.keys())}
+        self.sub_id_to_action_num = get_sub_id_to_action(self.env_gym.all_actions_dict,
+                return_action_ix= True)
+        self.num_to_sub = {i:k for i,k in enumerate(self.sub_id_to_action_num.keys())}
         self.info = {"steps": 0}
 
-        logger.debug("The sub_id_to_action_num is %s", self.sub_id_to_action_num)
-        logger.debug("The num_to_sub is %s", self.num_to_sub)
-
-    @property
-    def _agent_ids(self):
-        return self._my_agent_ids
-
-
-    def seed(self, seed=None):
-        """Add seed method for Ray compatibility."""
-        if hasattr(self.env_gym, 'seed'):
-            self.env_gym.seed(seed)
-        if hasattr(self.org_env, 'seed'):
-            self.org_env.seed(seed)
+        logger.debug("The sub_id_to_action_num is", self.sub_id_to_action_num)
+        logger.debug("The num_to_sub is", self.num_to_sub)
 
     def map_sub_to_mask(self):
         """
-        Produces a mask for the low level agent given the prediction of the high level agent.
+        Produces a mask given for the low level agent 
+        given the prediction of the high level agent.
         """
-        action_mask = np.zeros(106, dtype=np.float32)
-        if self.high_level_pred is None:
-            # 預設允許所有 actions
-            action_mask[:] = 1.0
-        else:
-            modified_sub = self.num_to_sub[self.high_level_pred]
-            aval_actions = self.sub_id_to_action_num[modified_sub]
-            action_mask[aval_actions] = 1.0
+        
+        action_mask = np.array([0.] * 106, dtype=np.float32)
+        modified_sub = self.num_to_sub[self.high_level_pred]  
+        aval_actions = self.sub_id_to_action_num[modified_sub]
+        action_mask[aval_actions] = 1.
+
         return action_mask
 
     def reset(self):
         self.cur_obs = self.env_gym.reset()
-        self.high_level_pred = None
+        self.high_level_pred = None # the substation to modify
         self.steps_remaining_at_level = None
+    
+        one_hot_encoded_action = np.zeros(106)
 
-        action_mask = self.map_sub_to_mask()  # 初始 mask
-
-        obs = {
-            self.high_level_agent_id: {
-                "regular_obs": self.cur_obs,
-                "chosen_action": 0
-            },
-            self.low_level_agent_id: {
-                "action_mask": action_mask,
-                "regular_obs": self.cur_obs,
-                "chosen_substation": self.high_level_pred
-            }
+        obs = {self.high_level_agent_id: {
+                        "regular_obs": self.cur_obs,
+                        "chosen_action": 0}
         }
         return obs
 
     def step(self, action_dict):
         assert len(action_dict) == 1, action_dict
         if self.high_level_agent_id in action_dict:
-            return self._high_level_step(action_dict[self.high_level_agent_id])
+            return self._high_level_step(action_dict["choose_substation_agent"])
         else:
             return self._low_level_step(list(action_dict.values())[0])
 
-    def _high_level_step(self, action, cur_obs=None):
+    def _high_level_step(self, action, cur_obs = None):
         logger.debug("High level agent sets goal")
-        self.high_level_pred = action
+        self.high_level_pred = action       
+        # Create a mask using the predicited action
         action_mask = self.map_sub_to_mask()
-
+        
         if cur_obs is not None:
             self.cur_obs = cur_obs
-
-        obs = {
-            self.low_level_agent_id: {
-                "action_mask": action_mask,
-                "regular_obs": self.cur_obs,
-                "chosen_substation": self.high_level_pred
-            }
-        }
+            
+        obs = {self.low_level_agent_id: {
+            "action_mask": action_mask,
+            "regular_obs":self.cur_obs ,
+            "chosen_substation": self.high_level_pred,
+        }}
         rew = {self.low_level_agent_id: 0}
         done = {"__all__": False}
         return obs, rew, done, {self.low_level_agent_id: self.info}
 
     def _low_level_step(self, action):
-        logger.debug("Low level agent step %s", action)
+        logger.debug("Low level agent step {}".format(action))
+        # Step in the actual env
         f_obs, f_rew, f_done, f_info = self.env_gym.step(action)
+        # Get the number of survived steps
         self.info["steps"] = f_info.get("steps", 0)
         self.cur_obs = f_obs
 
-        rew = {
-            self.low_level_agent_id: f_rew,
-            self.high_level_agent_id: f_rew
-        }
+        # Calculate low-level agent observation and reward
+        rew = {self.low_level_agent_id: f_rew}
 
-        done = {"__all__": f_done}
+        # Handle env termination & transitions back to higher level
+        done = {"__all__": False}
+        if f_done:
+            done["__all__"] = True
+            logger.debug("high level final reward {}".format(f_rew))
 
-        obs = {
-            self.high_level_agent_id: {
-                "regular_obs": f_obs,
-                "chosen_action": action
-            }
+        one_hot_encoded_action = np.zeros(106)
+        one_hot_encoded_action[action] = 1
+        rew = {self.low_level_agent_id: f_rew,
+               self.high_level_agent_id: f_rew}
+
+        obs = {self.high_level_agent_id: {
+                        "regular_obs": f_obs,
+                        "chosen_action": action}
         }
 
         return obs, rew, done, {self.high_level_agent_id: self.info}
