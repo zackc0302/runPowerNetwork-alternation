@@ -32,16 +32,31 @@ def preprocess_config(config):
             for callback_name in config["tune_config"]["callbacks"]:
                 callbacks_lst.append(mapper["callbacks"][callback_name])  
             config["tune_config"]["callbacks"] = callbacks_lst
-        else: # single str 
+        else:  # single str 
             config["tune_config"]["callbacks"] = mapper["callbacks"][config["tune_config"]["callbacks"]]
         
     try:
         config["tune_config"]["env"] = mapper["env"][config["tune_config"]["env"]]
-    except: # if the env is not in the mapper, it is an already registerd env
+    except:
         pass
 
+    # 修正 multi-agent policies
+    if "multiagent" in config["tune_config"]:
+        env_instance = config["tune_config"]["env"](config["tune_config"]["env_config"])
+        obs_space = env_instance.observation_space
+        action_space = env_instance.action_space
+
+        policies = config["tune_config"]["multiagent"].get("policies", {})
+        new_policies = {}
+        for policy_id, policy_cfg in policies.items():
+            if isinstance(policy_cfg, dict):
+                new_policies[policy_id] = (None, obs_space, action_space, policy_cfg["config"])
+            else:
+                new_policies[policy_id] = policy_cfg  # 保留原格式
+        config["tune_config"]["multiagent"]["policies"] = new_policies
 
     return config
+
 
     
 def tune_search_quniform_constructor(loader, node):
