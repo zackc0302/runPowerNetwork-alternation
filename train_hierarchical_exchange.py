@@ -91,7 +91,9 @@ if __name__ == "__main__":
         logging.info(f"{arg.upper()}: {getattr(args, arg)}")
 
     config = preprocess_config(yaml.load(open(args.algorithm_config_path), Loader=get_loader()))["tune_config"]
+    config["rollout_fragment_length"] = "auto"
     config["callbacks"] = tune.grid_search([CombinedCallbacks, LogDistributionsCallback])
+    
     config["num_gpus"] = 1  # ✅ GPU usage added here
 
     if args.num_workers != -1:
