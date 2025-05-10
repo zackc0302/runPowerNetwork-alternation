@@ -344,24 +344,22 @@ class Grid_Gym(gym.Env):
 
 
 class HierarchicalGridGym(MultiAgentEnv):
+class HierarchicalGridGym(MultiAgentEnv):
     def __init__(self, env_config):
         super().__init__()
 
+        self._my_agent_ids = {"choose_substation_agent", "choose_action_agent"}
+
+        # 其他初始化
         self.action_encoder = ModelCatalog.get_preprocessor_for_space(Discrete(106))
         self._skip_env_checking = True
-        
         self.env_gym = Grid_Gym(env_config)
         self.org_env = self.env_gym.org_env
-        
+
         self.low_level_agent_id = "choose_action_agent"
         self.high_level_agent_id = "choose_substation_agent"
-        
-        # 不要寫 self._agent_ids = {...}
-        # 改成直接 property 回傳
-        self._agent_ids_set = {"choose_substation_agent", "choose_action_agent"}
-        
-        self.sub_id_to_action_num = get_sub_id_to_action(self.env_gym.all_actions_dict,
-                                                         return_action_ix=True)
+
+        self.sub_id_to_action_num = get_sub_id_to_action(self.env_gym.all_actions_dict, return_action_ix=True)
         self.num_to_sub = {i: k for i, k in enumerate(self.sub_id_to_action_num.keys())}
         self.info = {"steps": 0}
 
@@ -370,7 +368,8 @@ class HierarchicalGridGym(MultiAgentEnv):
 
     @property
     def _agent_ids(self):
-        return self._agent_ids_set
+        return self._my_agent_ids
+
 
     def seed(self, seed=None):
         """Add seed method for Ray compatibility."""
