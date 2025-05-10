@@ -355,7 +355,9 @@ class HierarchicalGridGym(MultiAgentEnv):
         
         self.low_level_agent_id = "choose_action_agent"
         self.high_level_agent_id = "choose_substation_agent"
-
+        
+        self._agent_ids = {"choose_substation_agent", "choose_action_agent"}
+        
         self.sub_id_to_action_num = get_sub_id_to_action(self.env_gym.all_actions_dict,
                 return_action_ix= True)
         self.num_to_sub = {i:k for i,k in enumerate(self.sub_id_to_action_num.keys())}
@@ -387,14 +389,21 @@ class HierarchicalGridGym(MultiAgentEnv):
 
     def reset(self):
         self.cur_obs = self.env_gym.reset()
-        self.high_level_pred = None # the substation to modify
+        self.high_level_pred = None
         self.steps_remaining_at_level = None
     
-        one_hot_encoded_action = np.zeros(106)
-
-        obs = {self.high_level_agent_id: {
-                        "regular_obs": self.cur_obs,
-                        "chosen_action": 0}
+        action_mask = self.map_sub_to_mask() # 初始時可能需要一個預設的 mask
+    
+        obs = {
+            self.high_level_agent_id: {
+                "regular_obs": self.cur_obs,
+                "chosen_action": 0
+            },
+            self.low_level_agent_id: {
+                "action_mask": action_mask,
+                "regular_obs": self.cur_obs,
+                "chosen_substation": self.high_level_pred, # 初始時可能為 None
+            }
         }
         return obs
 
