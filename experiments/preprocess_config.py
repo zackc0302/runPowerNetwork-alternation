@@ -10,6 +10,8 @@ from experiments.callback import CombinedCallbacks
 
 mapper = {
     "callbacks": {
+        "CombinedCallbacks": CombinedCallbacks,
+        "LogDistributionsCallback": LogDistributionsCallback,
         "experiments.callback.CombinedCallbacks": CombinedCallbacks,
         "experiments.callback.LogDistributionsCallback": LogDistributionsCallback
     },
