@@ -356,9 +356,12 @@ class HierarchicalGridGym(MultiAgentEnv):
         self.low_level_agent_id = "choose_action_agent"
         self.high_level_agent_id = "choose_substation_agent"
 
+        # 新增 agent IDs
+        self._agent_ids = {self.low_level_agent_id, self.high_level_agent_id}
+
         self.sub_id_to_action_num = get_sub_id_to_action(self.env_gym.all_actions_dict,
-                return_action_ix= True)
-        self.num_to_sub = {i:k for i,k in enumerate(self.sub_id_to_action_num.keys())}
+                return_action_ix=True)
+        self.num_to_sub = {i: k for i, k in enumerate(self.sub_id_to_action_num.keys())}
         self.info = {"steps": 0}
 
         logger.debug("The sub_id_to_action_num is", self.sub_id_to_action_num)
