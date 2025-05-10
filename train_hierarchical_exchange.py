@@ -145,10 +145,10 @@ if __name__ == "__main__":
             num_samples=args.num_samples,
             callbacks=[
                 WandbLoggerCallback(
-                    # project=args.project_name,
-                    # group=args.group,
-                    # api_key=WANDB_API_KEY,
-                    # log_config=True
+                    project=args.project_name,
+                    group=args.group,
+                    api_key=WANDB_API_KEY,
+                    log_config=True
                 )
             ],
             keep_checkpoints_num=5,
