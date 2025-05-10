@@ -344,7 +344,6 @@ class Grid_Gym(gym.Env):
 
 
 class HierarchicalGridGym(MultiAgentEnv):
-class HierarchicalGridGym(MultiAgentEnv):
     def __init__(self, env_config):
         super().__init__()
 
