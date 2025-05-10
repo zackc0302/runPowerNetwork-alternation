@@ -1,40 +1,110 @@
-# Hierarchical Reinforcement Learning for Power Network Topology Control
+# Hierarchical RL with Alternating Updates for Power Network Topology
 
 This repository contains the code for experiments conducted for my master thesis realized at Amsterdam Machine Learning Lab and TenneT.
 
 ## Paper
 
-Please see the paper **Hierarchical Reinforcement Learning for Power Network Topology Control** (link coming soon) for more details. If this code is useful please cite our paper:
+**PENDING**
 
-*BibTeX coming soon*
+### Create the environment (contributed by yensh) on PC
 
-### Dependencies 
+> The version of each package is very important. We are still working on updating all of the packages to the latest versions.
+> 
+```
+# 創建特定 Python 版本的環境
+conda create -n rlib_grid python=3.7.9 -y
+conda activate rlib_grid
 
-The `env.yml` file can be used to install the dependencies. 
+# 安裝核心依賴 (特別注意版本)
+# PyTorch 安裝
+conda install pytorch==1.10.0 -c pytorch
 
-### Data setup
+# Grid2Op 與相關套件
+pip install Grid2Op==1.6.4 lightsim2grid==0.5.4
 
-We run our experiments with the `rte_case14_realistic` modeled in [Grid2Op](https://grid2op.readthedocs.io/en/latest/quickstart.html) package. The 1000 chronics (=episodes) are divided into a train, validation, and test set. The chronic numbers that we use for each split are saved in NumPy arrays in the `grid2op_env/train_val_test_split` folder.
+# Ray & RLlib 安裝
+pip install ray==1.9.0
 
-The following has to be run only once to download and set up the environment:
+# 降級處理
+pip install protobuf==3.20.0
+pip install importlib-metadata==4.13.0
+
+# 其他必要套件
+pip install gym==0.21.0 tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 
+pip install pillow==8.0.1 dm_tree scikit-image==0.18.3 lz4==3.1.3
+pip install python-dotenv tensorboardX==2.4
+pip install wandb
+```
+### Create the environment (contributed by yensh) on Ubuntu server
+
+```
+conda create -n rlib_grid_4090_pytorch2 python=3.8 -y
+conda activate rlib_grid_4090_pytorch2
+
+pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2+cu118 \
+    -f https://download.pytorch.org/whl/torch_stable.html
+
+pip install Grid2Op==1.6.4 lightsim2grid==0.5.4
+
+pip install ray==2.4.0
+
+pip install tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 \
+    pillow==9.3.0 dm_tree scikit-image==0.18.3 lz4==4.0.2 python-dotenv tensorboardX==2.6
+
+pip install pip==21.3.1 setuptools==59.5.0 wheel==0.37.1 --timeout 100
+pip install gym==0.21.0
+
+pip install wandb
+pip install gymnasium==0.28.1
+
+pip install torch-scatter -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
+pip install torch-sparse -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
+pip install torch-cluster -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
+pip install torch-spline-conv -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
+pip install torch-geometric==2.3.1
+
+python -c "import torch; print('torch', torch.__version__)"
+python -c "import torch_geometric; print('torch_geometric', torch_geometric.__version__)"
+python -c "import ray; print('ray', ray.__version__)"
+
+```
+
+### Dependencies
+
+The `setup_grid2op_data.py` file can be used to install the dependencies.
+
+### Set the Grid2Op environment
+
+You can create a `setup_grid2op.py` script to set up the environment.
 
 ```
 import grid2op
+import numpy as np
 
 env_name = "rte_case14_realistic"
 env = grid2op.make(env_name)
 
-val_chron, test_chron = np.load("grid2op_env/train_val_test_split/val_chronics.npy"), \
- np.load("/grid2op_env/train_val_test_split/test_chronics.npy")
+# Load or create split files
+val_path = "grid2op_env/train_val_test_split/val_chronics.npy"
+test_path = "grid2op_env/train_val_test_split/test_chronics.npy"
+val_chron = np.load(val_path)
+test_chron = np.load(test_path)
 
-nm_env_train, m_env_val, nm_env_test = env.train_val_split(test_scen_id=test_chron, # last 10 in test set
- add_for_test="test",
- val_scen_id=val_chron, # last 20 to last 10 in val test
- )
+# Create validation split
+env_base, env_val = env.train_val_split(
+    val_scen_id=val_chron,
+    add_for_val="val"
+)
 
-env_train = grid2op.make(env_name+"_train")
-env_val = grid2op.make(env_name+"_val")
-env_test = grid2op.make(env_name+"_test")
+# Reload environment and create test split
+env = grid2op.make(env_name)
+env_base2, env_test = env.train_val_split(
+    val_scen_id=test_chron,
+    add_for_val="test"
+)
+
+# Check available environments
+print("Available environments:", grid2op.list_available_local_env())
 
 ```
 ### Agent training
@@ -73,7 +143,7 @@ To train a fully hierarchical agent go to the `hierarchical_approach` branch and
 To train the hierarchical agent in the setting with outages for 1000 iterations and over 10 different seeds run:
 
 ```
-python train_hierarchical.py --algorithm ppo \
+python train_hierarchical_exchange.py --algorithm ppo \
  --algorithm_config_path experiments/hierarchical/full_mlp_share_critic.yaml \
  --use_tune True \
  --num_iters 1000 \
@@ -123,3 +193,11 @@ df = compile_table_df(data_per_algorithm)
 
 `notebooks` contains miscellaneous notebooks used in the course of development and evaluation. Notably `sub_node_model.ipnyb` contains an alpha version of a Graph Neural Network (GNN) based policy.
  
+@misc{manczak2023hierarchical,
+      title={Hierarchical Reinforcement Learning for Power Network Topology Control}, 
+      author={Blazej Manczak and Jan Viebahn and Herke van Hoof},
+      year={2023},
+      eprint={2311.02129},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
