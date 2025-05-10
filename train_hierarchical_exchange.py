@@ -94,7 +94,7 @@ if __name__ == "__main__":
     config["rollout_fragment_length"] = "auto"
     config["callbacks"] = tune.grid_search([CombinedCallbacks, LogDistributionsCallback])
     
-    config["num_gpus"] = 1  # ✅ GPU usage added here
+    # config["num_gpus"] = 1  # ✅ GPU usage added here
 
     if args.num_workers != -1:
         config["num_workers"] = args.num_workers
