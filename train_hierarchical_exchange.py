@@ -126,43 +126,45 @@ if __name__ == "__main__":
 
 
 
-    if args.use_tune:
-        reporter = CLIReporter()
-        stopper = CombinedStopper(
-            MaximumIterationStopper(max_iter=args.num_iters),
-            MaxNotImprovedStopper(metric="episode_reward_mean", grace_period=args.grace_period, num_iters_no_improvement=args.num_iters_no_improvement, no_stop_if_val=5500)
-        )
+if args.use_tune:
+    reporter = CLIReporter()
+    stopper = CombinedStopper(
+        MaximumIterationStopper(max_iter=args.num_iters),
+        MaxNotImprovedStopper(metric="episode_reward_mean", grace_period=args.grace_period,
+                              num_iters_no_improvement=args.num_iters_no_improvement, no_stop_if_val=5500)
+    )
 
-        ray.tune.run(
-            trainer_cls,
-            progress_reporter=reporter,
-            config=config,
-            name=args.group,
-            local_dir=LOCAL_DIR,
-            checkpoint_freq=args.checkpoint_freq,
-            stop=stopper,
-            checkpoint_at_end=True,
-            num_samples=args.num_samples,
-            callbacks=[
-                WandbLoggerCallback(
-                    project=args.project_name,
-                    group=args.group,
-                    api_key=WANDB_API_KEY,
-                    log_config=True
-                )
-            ],
-            keep_checkpoints_num=5,
-            checkpoint_score_attr="evaluation/episode_reward_mean",
-            verbose=1,
-            resume=args.resume
-        )
-        ray.shutdown()
-    else:
-        trainer_object = trainer_config.environment(env=Grid_Gym, env_config=config["env_config"]).build()
-        for step in range(args.num_iters):
-            result = trainer_object.train()
-            print(f"Iteration {step}: reward = {result['episode_reward_mean']}", flush=True)
-            if (step + 1) % args.checkpoint_freq == 0:
-                checkpoint = trainer_object.save()
-                print("Checkpoint saved at", checkpoint)
-            print("-" * 40, flush=True)
+    ray.tune.run(
+        trainer_config.algo_class,  # 改用 algo_class 而不是 trainer_cls
+        config=config,
+        name=args.group,
+        local_dir=LOCAL_DIR,
+        progress_reporter=reporter,
+        checkpoint_freq=args.checkpoint_freq,
+        stop=stopper,
+        checkpoint_at_end=True,
+        num_samples=args.num_samples,
+        callbacks=[
+            WandbLoggerCallback(
+                project=args.project_name,
+                group=args.group,
+                api_key=WANDB_API_KEY,
+                log_config=True
+            )
+        ],
+        keep_checkpoints_num=5,
+        checkpoint_score_attr="evaluation/episode_reward_mean",
+        verbose=1,
+        resume=args.resume
+    )
+    ray.shutdown()
+else:
+    trainer_object = trainer_config.build()  # 直接用 trainer_config.build()
+    for step in range(args.num_iters):
+        result = trainer_object.train()
+        print(f"Iteration {step}: reward = {result['episode_reward_mean']}", flush=True)
+        if (step + 1) % args.checkpoint_freq == 0:
+            checkpoint = trainer_object.save()
+            print("Checkpoint saved at", checkpoint)
+        print("-" * 40, flush=True)
+
