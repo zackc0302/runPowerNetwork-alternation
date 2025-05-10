@@ -364,6 +364,14 @@ class HierarchicalGridGym(MultiAgentEnv):
         logger.debug("The sub_id_to_action_num is", self.sub_id_to_action_num)
         logger.debug("The num_to_sub is", self.num_to_sub)
 
+
+    def seed(self, seed=None):
+        """Add seed method for Ray compatibility."""
+        if hasattr(self.env_gym, 'seed'):
+            self.env_gym.seed(seed)
+        if hasattr(self.org_env, 'seed'):
+            self.org_env.seed(seed)
+    
     def map_sub_to_mask(self):
         """
         Produces a mask given for the low level agent 
