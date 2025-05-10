@@ -51,7 +51,7 @@ def policy_mapping_fn(agent_id, episode, worker, **kwargs):
     else:
         return "choose_substation_agent"
 
-LOCAL_DIR = "log_files"
+LOCAL_DIR = os.path.abspath("log_files")
 
 if __name__ == "__main__":
     random.seed(2137)
