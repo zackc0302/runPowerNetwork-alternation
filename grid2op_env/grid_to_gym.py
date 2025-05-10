@@ -356,7 +356,9 @@ class HierarchicalGridGym(MultiAgentEnv):
         self.low_level_agent_id = "choose_action_agent"
         self.high_level_agent_id = "choose_substation_agent"
         
-        self._agent_ids = {"choose_substation_agent", "choose_action_agent"}
+        # 不要寫 self._agent_ids = {...}
+        # 改成直接 property 回傳
+        self._agent_ids_set = {"choose_substation_agent", "choose_action_agent"}
         
         self.sub_id_to_action_num = get_sub_id_to_action(self.env_gym.all_actions_dict,
                                                          return_action_ix=True)
@@ -365,6 +367,10 @@ class HierarchicalGridGym(MultiAgentEnv):
 
         logger.debug("The sub_id_to_action_num is %s", self.sub_id_to_action_num)
         logger.debug("The num_to_sub is %s", self.num_to_sub)
+
+    @property
+    def _agent_ids(self):
+        return self._agent_ids_set
 
     def seed(self, seed=None):
         """Add seed method for Ray compatibility."""
