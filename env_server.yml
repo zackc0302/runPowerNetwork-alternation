@@ -149,4 +149,4 @@ dependencies:
       - wandb==0.18.7
       - websocket-client==1.6.1
       - zipp==3.15.0
-prefix: /home/wesberchang/miniconda3/envs/rlib_grid
+# prefix: /home/wesberchang/miniconda3/envs/rlib_grid
