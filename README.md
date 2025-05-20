@@ -1,6 +1,6 @@
 # Hierarchical RL with Alternating Updates for Power Network Topology
 
-This repository contains the code for experiments conducted for my master thesis realized at Amsterdam Machine Learning Lab and TenneT.
+This repository builds upon and modifies the code from [bmanzack's runPowerNetworks](https://github.com/bmanczak/runPowerNetworks)
 
 ## Paper
 
@@ -124,10 +124,12 @@ python train_hierarchical_exchange.py --algorithm ppo \
 To run the trained agent on the set of test chronics run:
 
 ```
-python evaluation/run_eval.py --agent_type X \
- --checkpoint_path Y \
- --checkpoint_num Z \
- --use_split test \
+python evaluation/run_eval.py \
+  --agent_type ppo \
+  --checkpoint_path log_files/PPO_2025-05-13_15-03-37/PPO_HierarchicalGridGym_646ec_00000_0_seed=0_2025-05-13_15-03-37 \
+  --checkpoint_num 270 \
+  --use_split val \
+  --hierarchical True
 ```
 If the agent being evaluated is a fully hierarchical (i.e. non-hybrid) add keyword argument `--hierarchical True`.
 Except for printing the mean episode length, this script involves data collection that is needed for further analysis. The data is saved in a folder `evaluation/eval_results` and can be used for further analysis.
