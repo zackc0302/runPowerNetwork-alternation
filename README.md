@@ -71,38 +71,8 @@ python -c "import ray; print('ray', ray.__version__)"
 
 ### Set the Grid2Op environment
 
-You can create a `setup_grid2op.py` script to set up the environment.
+You can run the `setup_grid2op.py` script to set up the environment.
 
-```
-import grid2op
-import numpy as np
-
-env_name = "rte_case14_realistic"
-env = grid2op.make(env_name)
-
-# Load or create split files
-val_path = "grid2op_env/train_val_test_split/val_chronics.npy"
-test_path = "grid2op_env/train_val_test_split/test_chronics.npy"
-val_chron = np.load(val_path)
-test_chron = np.load(test_path)
-
-# Create validation split
-env_base, env_val = env.train_val_split(
-    val_scen_id=val_chron,
-    add_for_val="val"
-)
-
-# Reload environment and create test split
-env = grid2op.make(env_name)
-env_base2, env_test = env.train_val_split(
-    val_scen_id=test_chron,
-    add_for_val="test"
-)
-
-# Check available environments
-print("Available environments:", grid2op.list_available_local_env())
-
-```
 ### Agent training
 
 Note that wandb is used for monitoring the progress of the experiment.
