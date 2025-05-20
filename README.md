@@ -69,10 +69,6 @@ python -c "import ray; print('ray', ray.__version__)"
 
 ```
 
-### Dependencies
-
-The `setup_grid2op_data.py` file can be used to install the dependencies.
-
 ### Set the Grid2Op environment
 
 You can create a `setup_grid2op.py` script to set up the environment.
