@@ -2,71 +2,33 @@
 
 This repository builds upon and modifies the code from [bmanzack's runPowerNetworks](https://github.com/bmanczak/runPowerNetworks)
 
+Aimming to use alternation update to stablize the powerNetwork
+
 ## Paper
 
 **PENDING**
 
 ### Create the environment (contributed by yensh) on PC
 
-> The version of each package is very important. We are still working on updating all of the packages to the latest versions.
+> The version of each package is very important. ***We are still working on updating all of the packages to the latest versions***.
 > 
 ```
-# 創建特定 Python 版本的環境
 conda create -n rlib_grid python=3.7.9 -y
 conda activate rlib_grid
 
-# 安裝核心依賴 (特別注意版本)
-# PyTorch 安裝
 conda install pytorch==1.10.0 -c pytorch
 
-# Grid2Op 與相關套件
 pip install Grid2Op==1.6.4 lightsim2grid==0.5.4
 
-# Ray & RLlib 安裝
 pip install ray==1.9.0
 
-# 降級處理
 pip install protobuf==3.20.0
 pip install importlib-metadata==4.13.0
 
-# 其他必要套件
 pip install gym==0.21.0 tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 
 pip install pillow==8.0.1 dm_tree scikit-image==0.18.3 lz4==3.1.3
 pip install python-dotenv tensorboardX==2.4
 pip install wandb
-```
-### Create the environment (contributed by yensh) on Ubuntu server
-
-```
-conda create -n rlib_grid_4090_pytorch2 python=3.8 -y
-conda activate rlib_grid_4090_pytorch2
-
-pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2+cu118 \
-    -f https://download.pytorch.org/whl/torch_stable.html
-
-pip install Grid2Op==1.6.4 lightsim2grid==0.5.4
-
-pip install ray==2.4.0
-
-pip install tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 \
-    pillow==9.3.0 dm_tree scikit-image==0.18.3 lz4==4.0.2 python-dotenv tensorboardX==2.6
-
-pip install pip==21.3.1 setuptools==59.5.0 wheel==0.37.1 --timeout 100
-pip install gym==0.21.0
-
-pip install wandb
-pip install gymnasium==0.28.1
-
-pip install torch-scatter -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
-pip install torch-sparse -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
-pip install torch-cluster -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
-pip install torch-spline-conv -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
-pip install torch-geometric==2.3.1
-
-python -c "import torch; print('torch', torch.__version__)"
-python -c "import torch_geometric; print('torch_geometric', torch_geometric.__version__)"
-python -c "import ray; print('ray', ray.__version__)"
-
 ```
 
 ### Set the Grid2Op environment
@@ -103,7 +65,6 @@ See the `argparse` help for more details on keyword arguments.
 
 #### Hierarchical agent
 
-
 To train a fully hierarchical agent go to the `hierarchical_approach` branch and run the `train_hierarchical.py` file with desired keyword arguments. Similar to the native and hybrid agents, the choice of hyperparameters in a `.yaml` file.
 
 To train the hierarchical agent in the setting with outages for 1000 iterations and over 10 different seeds run:
@@ -117,7 +78,6 @@ python train_hierarchical_exchange.py --algorithm ppo \
  --checkpoint_freq 10 \
  --with_opponent True 
 ```
-
 
 ### Evaluation
 
