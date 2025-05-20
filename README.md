@@ -75,8 +75,8 @@ python train_hierarchical_exchange.py --algorithm ppo \
  --use_tune True \
  --num_iters 1000 \
  --num_samples 16 \
- --checkpoint_freq 10 \
- --with_opponent True 
+ --with_opponent True \
+ --project_name 
 ```
 
 ### Evaluation
