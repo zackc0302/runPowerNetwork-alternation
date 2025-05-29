@@ -55,6 +55,7 @@ choose_action_agent_params: &choose_action_agent_params
 tune_config:
   env: HierarchicalGridGym
   env_config: *env_config_train  # config to pass to env class
+  # num_gpus: 1 # forGPU
   multiagent:
     policies:
       choose_substation_agent:

@@ -21,7 +21,7 @@ if not all_available_chronics:
     exit()
 
 val_split_path = "grid2op_env/train_val_test_split/val_chronics.npy"
-test_split_path = "grid2op_env/train_val_test_split/test_chronics.npy"
+test_split_path = "grid2op_env/train_val_test_split/test_chronics.npy" # 修正了原始作者可能的路徑筆誤
 
 print(f"Loading validation split IDs from: {val_split_path}")
 print(f"Loading test split IDs from: {test_split_path}")
@@ -47,64 +47,98 @@ except ValueError:
     exit()
 
 # *** 過濾，確保名稱存在於基礎環境中 ***
-val_chron_names_for_val_split = [name for name in val_chron_names_intended if name in all_available_chronics]
-test_chron_names_for_test_split = [name for name in test_chron_names_intended if name in all_available_chronics] # <--- 新增對 test 名稱的過濾
+val_chron_names_filtered = [name for name in val_chron_names_intended if name in all_available_chronics]
+test_chron_names_filtered = [name for name in test_chron_names_intended if name in all_available_chronics]
 
-print(f"Number of valid intended validation chronic names found: {len(val_chron_names_for_val_split)}")
-print(f"Number of valid intended test chronic names found: {len(test_chron_names_for_test_split)}") # <--- 打印過濾後的 test 數量
+print(f"Number of valid intended validation chronic names found: {len(val_chron_names_filtered)}")
+print(f"Number of valid intended test chronic names found: {len(test_chron_names_filtered)}")
 
-if len(test_chron_names_for_test_split) == 0: # <--- 檢查 test 列表是否為空
+if not val_chron_names_filtered:
+     print("Error: No valid chronic names found for the validation set within the base environment.")
+     print("Available base chronics:", all_available_chronics)
+     print("Original intended validation IDs mapped to names:", val_chron_names_intended)
+     exit()
+
+if not test_chron_names_filtered:
      print("Error: No valid chronic names found for the test set within the base environment.")
      print("Available base chronics:", all_available_chronics)
      print("Original intended test IDs mapped to names:", test_chron_names_intended)
      exit()
 
 try:
-    # Step 1: Split into TrainVal and Test
-    print("\nPerforming first split (TrainVal / Test) using Grid2Op v1.6.4 method...")
-    nm_env_trainval, nm_env_test = env.train_val_split(
-        val_scen_id=test_chron_names_for_test_split, # *** 使用過濾後的 test chronic 名稱列表 ***
-        add_for_val="test",
-        add_for_train="trainval"
+    print("\nPerforming direct Train / Validation / Test split...")
+    # 使用 train_val_split 進行三向分割
+    # 傳入 test_scen_id 和 val_scen_id
+    # add_for_train, add_for_val, add_for_test 控制生成的環境名稱後綴
+    nm_env_train, nm_env_val, nm_env_test = env.train_val_split(
+        test_scen_id=test_chron_names_filtered, # 使用過濾後的 test chronic 名稱列表
+        val_scen_id=val_chron_names_filtered,   # 使用過濾後的 val chronic 名稱列表
+        add_for_train="train",                  # 後綴為 _train
+        add_for_val="val",                      # 後綴為 _val
+        add_for_test="test"                     # 後綴為 _test
     )
-    print(f"Intermediate environment names: trainval='{nm_env_trainval}', test='{nm_env_test}'")
+    print(f"Environment names created: train='{nm_env_train}', val='{nm_env_val}', test='{nm_env_test}'")
 
-    # Step 2: Split TrainVal into Train and Val
-    print("\nLoading intermediate trainval environment...")
-    env_trainval = grid2op.make(nm_env_trainval)
-
-    available_trainval_chronics = [os.path.basename(p) for p in env_trainval.chronics_handler.subpaths]
-    print(f"Number of chronics available in '{nm_env_trainval}': {len(available_trainval_chronics)}")
-
-    # *** 從 intended 驗證集名稱中，再次過濾，確保它們還在 trainval 環境中 ***
-    val_chron_names_final = [name for name in val_chron_names_for_val_split if name in available_trainval_chronics] # 使用 val_chron_names_for_val_split
-
-    print(f"Number of chronics selected for final validation set: {len(val_chron_names_final)}")
-    if len(val_chron_names_final) == 0:
-        print("Error: No valid chronic names found for the validation set within the trainval environment.")
-        print("Available chronics in trainval:", available_trainval_chronics)
-        print("Original intended validation IDs mapped to names:", val_chron_names_intended)
-        exit()
-
-    print("Performing second split (Train / Val) using Grid2Op v1.6.4 method...")
-    nm_env_train, nm_env_val = env_trainval.train_val_split(
-         val_scen_id=val_chron_names_final,
-         add_for_val="val",
-         add_for_train="train",
-         remove_from_name="_trainval$"
-    )
-    print(f"Final environment names: train='{nm_env_train}', val='{nm_env_val}', test='{nm_env_test}'")
-
-    # Step 3: Load final environments to verify
+    # Step 2: Load final environments to verify
     print("\nLoading final split environments...")
-    env_train = grid2op.make(env_name + "_train")
-    env_val = grid2op.make(env_name + "_val")
-    env_test = grid2op.make(env_name + "_test") # <--- 這裡上次出錯
+    # 這裡我們假設 nm_env_train, nm_env_val, nm_env_test 返回的就是 env_name + 後綴
+    # 如果不是，則需要根據實際返回的名稱加載
+    # 但通常 grid2op 的行為是這樣的
+    env_train = grid2op.make(nm_env_train) # 或者 grid2op.make(env_name + "_train")
+    env_val = grid2op.make(nm_env_val)     # 或者 grid2op.make(env_name + "_val")
+    env_test = grid2op.make(nm_env_test)   # 或者 grid2op.make(env_name + "_test")
 
     print("\nGrid2Op train/val/test environments created successfully!")
     print(f"Training set chronics: {len(env_train.chronics_handler.subpaths)}")
     print(f"Validation set chronics: {len(env_val.chronics_handler.subpaths)}")
     print(f"Test set chronics: {len(env_test.chronics_handler.subpaths)}")
+
+    # 驗證數量是否符合預期
+    # 訓練集數量 = 總數 - 驗證集數量 - 測試集數量 (假設沒有交集)
+    # 注意：如果驗證集和測試集 chronic 名稱有重疊，實際分割行為可能不同。
+    # 但在此處，我們是從 `.npy` 文件加載，通常它們是互斥的。
+    expected_train_count = len(all_available_chronics) - len(val_chron_names_filtered) - len(test_chron_names_filtered)
+    # 考慮到 val_chron_names_filtered 和 test_chron_names_filtered 可能有重疊的情況（儘管不常見於標準分割）
+    # 更準確的計算是：
+    combined_val_test = set(val_chron_names_filtered) | set(test_chron_names_filtered)
+    expected_train_count_robust = len(all_available_chronics) - len(combined_val_test)
+
+
+    print(f"Expected training set chronics (approx, assuming no overlap in specified val/test): {expected_train_count}")
+    print(f"Expected training set chronics (robust, accounting for potential overlap): {expected_train_count_robust}")
+    print(f"Expected validation set chronics: {len(val_chron_names_filtered)}")
+    print(f"Expected test set chronics: {len(test_chron_names_filtered)}")
+
+    # 檢查是否有 chronic 被錯誤地分配
+    train_actual_names = {os.path.basename(p) for p in env_train.chronics_handler.subpaths}
+    val_actual_names = {os.path.basename(p) for p in env_val.chronics_handler.subpaths}
+    test_actual_names = {os.path.basename(p) for p in env_test.chronics_handler.subpaths}
+
+    # 檢查 val 和 test 集合是否與指定的完全一致
+    if set(val_chron_names_filtered) != val_actual_names:
+        print(f"Warning: Mismatch in validation set chronics!")
+        print(f"  Expected in val: {set(val_chron_names_filtered)}")
+        print(f"  Actual in val:   {val_actual_names}")
+        print(f"  Missing from val: {set(val_chron_names_filtered) - val_actual_names}")
+        print(f"  Extra in val:    {val_actual_names - set(val_chron_names_filtered)}")
+
+
+    if set(test_chron_names_filtered) != test_actual_names:
+        print(f"Warning: Mismatch in test set chronics!")
+        print(f"  Expected in test: {set(test_chron_names_filtered)}")
+        print(f"  Actual in test:   {test_actual_names}")
+        print(f"  Missing from test: {set(test_chron_names_filtered) - test_actual_names}")
+        print(f"  Extra in test:    {test_actual_names - set(test_chron_names_filtered)}")
+
+
+    # 檢查是否有重疊
+    if val_actual_names & test_actual_names:
+        print(f"Warning: Overlap between final validation and test sets: {val_actual_names & test_actual_names}")
+    if train_actual_names & val_actual_names:
+        print(f"Warning: Overlap between final train and validation sets: {train_actual_names & val_actual_names}")
+    if train_actual_names & test_actual_names:
+        print(f"Warning: Overlap between final train and test sets: {train_actual_names & test_actual_names}")
+
 
 except Exception as e:
     print(f"\nAn error occurred during the split process: {e}")

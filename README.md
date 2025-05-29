@@ -1,6 +1,8 @@
 # Hierarchical RL with Alternating Updates for Power Network Topology
 
-This repository contains the code for experiments conducted for my master thesis realized at Amsterdam Machine Learning Lab and TenneT.
+This repository builds upon and modifies the code from [bmanzack's runPowerNetworks](https://github.com/bmanczak/runPowerNetworks)
+
+Aimming to use alternation update to stablize the powerNetwork
 
 ## Paper
 
@@ -8,105 +10,57 @@ This repository contains the code for experiments conducted for my master thesis
 
 ### Create the environment (contributed by yensh) on PC
 
-> The version of each package is very important. We are still working on updating all of the packages to the latest versions.
+> The version of each package is very important. ***We are still working on updating all of the packages to the latest versions***.
 > 
 ```
-# 創建特定 Python 版本的環境
 conda create -n rlib_grid python=3.7.9 -y
 conda activate rlib_grid
 
-# 安裝核心依賴 (特別注意版本)
-# PyTorch 安裝
 conda install pytorch==1.10.0 -c pytorch
 
-# Grid2Op 與相關套件
 pip install Grid2Op==1.6.4 lightsim2grid==0.5.4
 
-# Ray & RLlib 安裝
 pip install ray==1.9.0
 
-# 降級處理
 pip install protobuf==3.20.0
 pip install importlib-metadata==4.13.0
 
-# 其他必要套件
 pip install gym==0.21.0 tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 
 pip install pillow==8.0.1 dm_tree scikit-image==0.18.3 lz4==3.1.3
 pip install python-dotenv tensorboardX==2.4
 pip install wandb
 ```
-### Create the environment (contributed by yensh) on Ubuntu server
-
-```
-conda create -n rlib_grid_4090_pytorch2 python=3.8 -y
-conda activate rlib_grid_4090_pytorch2
-
-pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2+cu118 \
-    -f https://download.pytorch.org/whl/torch_stable.html
-
-pip install Grid2Op==1.6.4 lightsim2grid==0.5.4
-
-pip install ray==2.4.0
-
-pip install tabulate==0.8.9 numba==0.54.1 tqdm==4.62.3 \
-    pillow==9.3.0 dm_tree scikit-image==0.18.3 lz4==4.0.2 python-dotenv tensorboardX==2.6
-
-pip install pip==21.3.1 setuptools==59.5.0 wheel==0.37.1 --timeout 100
-pip install gym==0.21.0
-
-pip install wandb
-pip install gymnasium==0.28.1
-
-pip install torch-scatter -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
-pip install torch-sparse -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
-pip install torch-cluster -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
-pip install torch-spline-conv -f https://data.pyg.org/whl/torch-2.0.1+cu118.html
-pip install torch-geometric==2.3.1
-
-python -c "import torch; print('torch', torch.__version__)"
-python -c "import torch_geometric; print('torch_geometric', torch_geometric.__version__)"
-python -c "import ray; print('ray', ray.__version__)"
-
-```
-
-### Dependencies
-
-The `setup_grid2op_data.py` file can be used to install the dependencies.
 
 ### Set the Grid2Op environment
 
-You can create a `setup_grid2op.py` script to set up the environment.
+You can run the `setup_grid2op.py` script to set up the environment.
 
+### Modify the models/utils.py
 ```
-import grid2op
-import numpy as np
+# from sknetwork.utils import edgelist2adjacency
+def edgelist2adjacency(edge_list, num_nodes=None):
+    """
+    Convert an edge list to a sparse adjacency matrix.
 
-env_name = "rte_case14_realistic"
-env = grid2op.make(env_name)
+    Parameters:
+    - edge_list: list of (i, j) pairs
+    - num_nodes: total number of nodes (optional)
 
-# Load or create split files
-val_path = "grid2op_env/train_val_test_split/val_chronics.npy"
-test_path = "grid2op_env/train_val_test_split/test_chronics.npy"
-val_chron = np.load(val_path)
-test_chron = np.load(test_path)
+    Returns:
+    - scipy.sparse.coo_matrix adjacency matrix
+    """
+    if num_nodes is None:
+        num_nodes = max(max(i, j) for i, j in edge_list) + 1
 
-# Create validation split
-env_base, env_val = env.train_val_split(
-    val_scen_id=val_chron,
-    add_for_val="val"
-)
+    row = [i for i, j in edge_list]
+    col = [j for i, j in edge_list]
+    data = np.ones(len(edge_list))
 
-# Reload environment and create test split
-env = grid2op.make(env_name)
-env_base2, env_test = env.train_val_split(
-    val_scen_id=test_chron,
-    add_for_val="test"
-)
-
-# Check available environments
-print("Available environments:", grid2op.list_available_local_env())
-
+    adj = coo_matrix((data, (row, col)), shape=(num_nodes, num_nodes))
+    return adj
 ```
+
+
 ### Agent training
 
 Note that wandb is used for monitoring the progress of the experiment.
@@ -137,7 +91,6 @@ See the `argparse` help for more details on keyword arguments.
 
 #### Hierarchical agent
 
-
 To train a fully hierarchical agent go to the `hierarchical_approach` branch and run the `train_hierarchical.py` file with desired keyword arguments. Similar to the native and hybrid agents, the choice of hyperparameters in a `.yaml` file.
 
 To train the hierarchical agent in the setting with outages for 1000 iterations and over 10 different seeds run:
@@ -148,20 +101,21 @@ python train_hierarchical_exchange.py --algorithm ppo \
  --use_tune True \
  --num_iters 1000 \
  --num_samples 16 \
- --checkpoint_freq 10 \
- --with_opponent True 
+ --with_opponent True \
+ --project_name 
 ```
-
 
 ### Evaluation
 
 To run the trained agent on the set of test chronics run:
 
 ```
-python evaluation/run_eval.py --agent_type X \
- --checkpoint_path Y \
- --checkpoint_num Z \
- --use_split test \
+python evaluation/run_eval.py \
+  --agent_type ppo \
+  --checkpoint_path log_files/PPO_2025-05-13_15-03-37/PPO_HierarchicalGridGym_646ec_00000_0_seed=0_2025-05-13_15-03-37 \
+  --checkpoint_num 270 \
+  --use_split val \
+  --hierarchical True
 ```
 If the agent being evaluated is a fully hierarchical (i.e. non-hybrid) add keyword argument `--hierarchical True`.
 Except for printing the mean episode length, this script involves data collection that is needed for further analysis. The data is saved in a folder `evaluation/eval_results` and can be used for further analysis.

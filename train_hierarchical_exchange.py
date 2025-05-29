@@ -98,7 +98,7 @@ if __name__ == "__main__":
         logging.info(f"{arg.upper()}: {getattr(args, arg)}")
 
     config = preprocess_config(yaml.load(open(args.algorithm_config_path), Loader=get_loader()))["tune_config"]
-    config["callbacks"] = tune.grid_search([CombinedCallbacks, LogDistributionsCallback])
+    config["callbacks"] = CombinedCallbacks
     ## 這邊有更改過
     if args.num_workers != -1:
         config["num_workers"] = args.num_workers
