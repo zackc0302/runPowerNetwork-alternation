@@ -2,7 +2,7 @@
 
 This repository builds upon and modifies the code from [bmanzack's runPowerNetworks](https://github.com/bmanczak/runPowerNetworks)
 
-Aimming to use alternation update to stablize the powerNetwork
+Aimming to use **alternation update** and **block coordinate gradient descent** to stablize the powerNetwork
 
 ## Paper
 
