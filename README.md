@@ -105,6 +105,15 @@ python train_hierarchical_exchange.py --algorithm ppo \
  --project_name 
 ```
 
+- 只用 a:b 頻率控制（非互斥）：
+```
+python train_hierarchical.py --sub_freq 3 --action_freq 1
+```
+- 啟用交錯互斥更新（中、下輪流更新）：
+```
+python train_hierarchical.py --sub_freq 1 --action_freq 1 --mutual_exclusive
+```
+
 ### Evaluation
 
 To run the trained agent on the set of test chronics run:
