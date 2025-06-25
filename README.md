@@ -111,7 +111,17 @@ python train_hierarchical.py --sub_freq 3 --action_freq 1
 ```
 - 啟用交錯互斥更新（中、下輪流更新）：
 ```
-python train_hierarchical.py --sub_freq 1 --action_freq 1 --mutual_exclusive
+python train_hierarchical_exchange.py \
+  --algorithm ppo \
+  --algorithm_config_path experiments/hierarchical/full_mlp_share_critic.yaml \
+  --use_tune True \
+  --num_iters 1000 \
+  --num_samples 3 \
+  --with_opponent True \
+  --project_name alter_hierarchical_mutual_exclusive \
+  --sub_freq 1 \
+  --action_freq 1 \
+  --mutual_exclusive
 ```
 
 ### Evaluation
