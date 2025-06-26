@@ -2,7 +2,7 @@
 
 This repository builds upon and modifies the code from [bmanzack's runPowerNetworks](https://github.com/bmanczak/runPowerNetworks)
 
-Aimming to use alternation update to stablize the powerNetwork
+Aimming to use **alternation update** and **block coordinate gradient descent** to stablize the powerNetwork
 
 ## Paper
 
@@ -103,6 +103,35 @@ python train_hierarchical_exchange.py --algorithm ppo \
  --num_samples 16 \
  --with_opponent True \
  --project_name 
+```
+
+- 只用 a:b 頻率控制（非互斥）：
+```
+python train_hierarchical_exchange.py \
+ --algorithm ppo \
+ --algorithm_config_path experiments/hierarchical/full_mlp_share_critic.yaml \
+ --use_tune True \
+ --num_iters 1000 \
+ --num_samples 3 \
+ --with_opponent True \
+ --sub_freq 1 \
+ --action_freq 2 \
+ --update_mode proportional \
+ --project_name your_project_name 
+```
+- 啟用交錯互斥更新（中、下輪流更新）：
+```
+python train_hierarchical_exchange.py \
+ --algorithm ppo \
+ --algorithm_config_path experiments/hierarchical/full_mlp_share_critic.yaml \
+ --use_tune True \
+ --num_iters 1000 \
+ --num_samples 3 \
+ --with_opponent True \
+ --sub_freq 1 \
+ --action_freq 1 \
+ --update_mode alternating \
+ --project_name your_project_name 
 ```
 
 ### Evaluation
