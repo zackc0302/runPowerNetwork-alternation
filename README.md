@@ -117,7 +117,8 @@ python train_hierarchical_exchange.py \
  --sub_freq 1 \
  --action_freq 2 \
  --update_mode proportional \
- --project_name your_project_name 
+ --project_name your_project_name \
+ --group proportional_1_2_update
 ```
 - 啟用交錯互斥更新（中、下輪流更新）：
 ```
@@ -128,10 +129,9 @@ python train_hierarchical_exchange.py \
  --num_iters 1000 \
  --num_samples 3 \
  --with_opponent True \
- --sub_freq 1 \
- --action_freq 1 \
  --update_mode alternating \
- --project_name your_project_name 
+ --project_name your_project_name \
+ --group alternating_1_1_update
 ```
 
 ### Evaluation

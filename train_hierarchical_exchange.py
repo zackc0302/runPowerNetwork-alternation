@@ -35,7 +35,6 @@ from experiments.preprocess_config import preprocess_config, get_loader
 from experiments.stopper import MaxNotImprovedStopper
 
 from experiments.callback import CombinedCallbacks, LogDistributionsCallback, CustomSyncCallback
-from experiments.custom_ppo_trainer import CustomPPOTrainer
 
 load_dotenv()
 WANDB_API_KEY = os.environ.get("WANDB_API_KEY")
@@ -89,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument("--with_opponent", type = bool, default= -1, help = "Whether to use an opponent or not.")
     parser.add_argument("--sub_freq", type=int, default=2, help="Every how many iterations to update substation agent (a in a:b)")
     parser.add_argument("--action_freq", type=int, default=1, help="Every how many iterations to update action agent (b in a:b)")
-    parser.add_argument("--update_mode", type=str, default="proportional", choices=["proportional", "mutual_exclusive", "alternating"], help="Which update mode to use")
+    parser.add_argument("--update_mode", type=str, default="proportional", choices=["proportional", "alternating"], help="Update strategy: proportional (default) or alternating.")
 
     args = parser.parse_args()
 
@@ -99,10 +98,10 @@ if __name__ == "__main__":
         logging.info(f"{arg.upper()}: {getattr(args, arg)}")
 
     config = preprocess_config(yaml.load(open(args.algorithm_config_path), Loader=get_loader()))["tune_config"]
-    config["callbacks"] = CombinedCallbacks(
+    config["callbacks"] = lambda: CombinedCallbacks(
         sub_update_every=args.sub_freq,
         action_update_every=args.action_freq,
-        update_mode=args.update_mode
+        update_mode=args.update_mode  # "alternating" or "proportional"
     )
 
     if args.num_workers != -1:
@@ -118,7 +117,7 @@ if __name__ == "__main__":
         print("-" * 20)
 
     if args.algorithm == "ppo":
-        trainer_cls = CustomPPOTrainer
+        trainer_cls = ppo.PPOTrainer
     elif args.algorithm == "sac":
         trainer_cls = sac.SACTrainer
     else:

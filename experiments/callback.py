@@ -4,7 +4,6 @@ import matplotlib
 import io
 import logging
 import torch
-import random
 from ray.rllib.agents.callbacks import DefaultCallbacks
 
 from ray.rllib.env import BaseEnv
@@ -40,23 +39,34 @@ color_list = [CB91_Blue, CB91_Pink, CB91_Green, CB91_Amber,
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color=color_list)
 plt.figure(figsize=(14,10), tight_layout=True)
 
-
 class CustomSyncCallback(DefaultCallbacks):
-    def __init__(self, sub_update_every=2, action_update_every=1):
+    def __init__(self, sub_update_every=2, action_update_every=1, update_mode="proportional"):
         super().__init__()
-        self.sub_freq = sub_update_every
-        self.action_freq = action_update_every
+        self.iteration_count = 0
+        self.sub_update_every = sub_update_every
+        self.action_update_every = action_update_every
+        self.update_mode = update_mode
 
     def on_train_result(self, *, trainer, result, **kwargs):
-        # 根據 a:b 轉成機率後隨機選擇更新哪一層（互斥）
-        prob_sub = self.sub_freq / (self.sub_freq + self.action_freq)
-        update_sub = random.random() < prob_sub  # True 則更新中層，否則更新下層
+        self.iteration_count += 1
 
+        if self.update_mode == "alternating":
+            update_sub = (self.iteration_count % 2 == 1)  # 奇數中層，偶數下層
+        elif self.update_mode == "proportional":
+            prob_sub = self.sub_update_every / (self.sub_update_every + self.action_update_every)
+            update_sub = np.random.rand() < prob_sub
+        else:
+            raise ValueError(f"Unknown update_mode: {self.update_mode}")
+
+        # 實際更新允許哪一層學習
         trainer.workers.foreach_policy(
             lambda pid, p: p.config.update({
                 "substation_update_allowed": update_sub if pid == "choose_substation_agent" else not update_sub
             }) if pid in ["choose_substation_agent", "choose_action_agent"] else None
         )
+
+
+
 
     def setup(self, **info):
         pass
@@ -249,14 +259,15 @@ class CustomTBXLogger(TBXLogger):
 
 
 class CombinedCallbacks(DefaultCallbacks):
-    def __init__(self, sub_update_every=2, action_update_every=1, mutual_exclusive=False):
+    def __init__(self, sub_update_every=2, action_update_every=1, update_mode="proportional"):
         super().__init__()
         self.sync_cb = CustomSyncCallback(
             sub_update_every=sub_update_every,
             action_update_every=action_update_every,
-            mutual_exclusive=mutual_exclusive
+            update_mode=update_mode
         )
         self.log_cb = LogDistributionsCallback()
+
 
 
     def on_train_result(self, **kwargs):
