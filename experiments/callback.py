@@ -4,6 +4,7 @@ import matplotlib
 import io
 import logging
 import torch
+import random
 from ray.rllib.agents.callbacks import DefaultCallbacks
 
 from ray.rllib.env import BaseEnv
@@ -39,21 +40,22 @@ color_list = [CB91_Blue, CB91_Pink, CB91_Green, CB91_Amber,
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color=color_list)
 plt.figure(figsize=(14,10), tight_layout=True)
 
+
 class CustomSyncCallback(DefaultCallbacks):
-    def __init__(self):
+    def __init__(self, sub_update_every=2, action_update_every=1):
         super().__init__()
-        self.action_update_count = 0
-        self.substation_update_allowed = False
+        self.sub_freq = sub_update_every
+        self.action_freq = action_update_every
 
     def on_train_result(self, *, trainer, result, **kwargs):
-        self.action_update_count += 1
-        allow_update = self.action_update_count % 2 == 0
-        self.substation_update_allowed = allow_update
+        # 根據 a:b 轉成機率後隨機選擇更新哪一層（互斥）
+        prob_sub = self.sub_freq / (self.sub_freq + self.action_freq)
+        update_sub = random.random() < prob_sub  # True 則更新中層，否則更新下層
 
-        # 注入 flag 到 substation policy config
         trainer.workers.foreach_policy(
-            lambda pid, p: p.config.update({"substation_update_allowed": allow_update})
-            if pid == "choose_substation_agent" else None
+            lambda pid, p: p.config.update({
+                "substation_update_allowed": update_sub if pid == "choose_substation_agent" else not update_sub
+            }) if pid in ["choose_substation_agent", "choose_action_agent"] else None
         )
 
     def setup(self, **info):
@@ -247,10 +249,15 @@ class CustomTBXLogger(TBXLogger):
 
 
 class CombinedCallbacks(DefaultCallbacks):
-    def __init__(self):
+    def __init__(self, sub_update_every=2, action_update_every=1, mutual_exclusive=False):
         super().__init__()
-        self.sync_cb = CustomSyncCallback()
+        self.sync_cb = CustomSyncCallback(
+            sub_update_every=sub_update_every,
+            action_update_every=action_update_every,
+            mutual_exclusive=mutual_exclusive
+        )
         self.log_cb = LogDistributionsCallback()
+
 
     def on_train_result(self, **kwargs):
         self.sync_cb.on_train_result(**kwargs)

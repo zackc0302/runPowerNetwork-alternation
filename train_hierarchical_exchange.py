@@ -34,9 +34,8 @@ from grid2op_env.grid_to_gym import Grid_Gym, Grid_Gym_Greedy, HierarchicalGridG
 from experiments.preprocess_config import preprocess_config, get_loader
 from experiments.stopper import MaxNotImprovedStopper
 
-from experiments.callback import CombinedCallbacks, LogDistributionsCallback
+from experiments.callback import CombinedCallbacks, LogDistributionsCallback, CustomSyncCallback
 from experiments.custom_ppo_trainer import CustomPPOTrainer
-from experiments.callback import CustomSyncCallback
 
 load_dotenv()
 WANDB_API_KEY = os.environ.get("WANDB_API_KEY")
@@ -63,7 +62,6 @@ if __name__ == "__main__":
     torch.manual_seed(2137)
     ModelCatalog.register_custom_model("fcn", SimpleMlp)
     ModelCatalog.register_custom_model("substation_module", RllibSubsationModule)
-    # ModelCatalog.register_custom_model("hierarchical_agent", HierarchicalAgent)
     ModelCatalog.register_custom_model("choose_substation_model", ChooseSubstationModel)
     ModelCatalog.register_custom_model("choose_action_model", ChooseActionModel)
 
@@ -89,6 +87,9 @@ if __name__ == "__main__":
     parser.add_argument("--num_iters_no_improvement", type = int, default = 200, help = "Minimum number of timesteps before a trial can be early stopped.")
     parser.add_argument("--seed", type = int, default = -1, help = "Seed to use for training.")
     parser.add_argument("--with_opponent", type = bool, default= -1, help = "Whether to use an opponent or not.")
+    parser.add_argument("--sub_freq", type=int, default=2, help="Every how many iterations to update substation agent (a in a:b)")
+    parser.add_argument("--action_freq", type=int, default=1, help="Every how many iterations to update action agent (b in a:b)")
+    parser.add_argument("--update_mode", type=str, default="proportional", choices=["proportional", "mutual_exclusive", "alternating"], help="Which update mode to use")
 
     args = parser.parse_args()
 
@@ -98,8 +99,12 @@ if __name__ == "__main__":
         logging.info(f"{arg.upper()}: {getattr(args, arg)}")
 
     config = preprocess_config(yaml.load(open(args.algorithm_config_path), Loader=get_loader()))["tune_config"]
-    config["callbacks"] = CombinedCallbacks
-    ## 這邊有更改過
+    config["callbacks"] = CombinedCallbacks(
+        sub_update_every=args.sub_freq,
+        action_update_every=args.action_freq,
+        update_mode=args.update_mode
+    )
+
     if args.num_workers != -1:
         config["num_workers"] = args.num_workers
 
@@ -113,22 +118,17 @@ if __name__ == "__main__":
         print("-" * 20)
 
     if args.algorithm == "ppo":
-        trainer_cls = ppo.PPOTrainer
+        trainer_cls = CustomPPOTrainer
     elif args.algorithm == "sac":
         trainer_cls = sac.SACTrainer
     else:
         raise ValueError("Unknown algorithm. Choices are: ppo, sac")
-    ##
- 
-    ### Hierarchical specific setup: START
+
     env_config_train = config["env_config"]
     env_config_val = config["evaluation_config"]["env_config"]
 
     grid_gym = Grid_Gym(env_config_train)
-    
 
-    ### Fixed params
-    ### 選站的agent(中層)
     substation_config = config["multiagent"]["policies"]["choose_substation_agent"]["config"]
 
     config["multiagent"]["policies"]["choose_substation_agent"] = (
@@ -141,7 +141,7 @@ if __name__ == "__main__":
         {
             **substation_config,
             "train_batch_size": 512,
-            "loss_fn": "experiments.custom_losses.custom_substation_loss" # 內含"跳過 loss → 不讓 optimizer 做事"
+            "loss_fn": "experiments.custom_losses.custom_substation_loss"
         }
     )
 
@@ -162,9 +162,7 @@ if __name__ == "__main__":
         }
     )
 
-
     config["multiagent"]["policy_mapping_fn"] = policy_mapping_fn
-    ### Hierarchical specific setup: END 
 
     if args.use_tune:
         reporter = CLIReporter()
@@ -200,7 +198,7 @@ if __name__ == "__main__":
             resume=args.resume
         )
         ray.shutdown()
-    else:  # use ray trainer directly
+    else:
         trainer_object = trainer_cls(env=Grid_Gym, config=config)
 
         for step in range(args.num_iters):
