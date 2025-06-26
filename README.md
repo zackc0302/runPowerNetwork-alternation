@@ -107,7 +107,16 @@ python train_hierarchical_exchange.py --algorithm ppo \
 
 - 只用 a:b 頻率控制（非互斥）：
 ```
-python train_hierarchical.py --sub_freq 3 --action_freq 1
+python train_hierarchical_exchange.py \
+  --algorithm ppo \
+  --algorithm_config_path experiments/hierarchical/full_mlp_share_critic.yaml \
+  --use_tune True \
+  --num_iters 1000 \
+  --num_samples 16 \
+  --with_opponent True \
+  --project_name alter_probabilistic_update \
+  --sub_freq 1 \
+  --action_freq 2
 ```
 - 啟用交錯互斥更新（中、下輪流更新）：
 ```
